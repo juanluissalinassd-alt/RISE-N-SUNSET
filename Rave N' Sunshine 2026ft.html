@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<meta property="og:title" content="RAVE N SUNSET">
+<meta property="og:description" content="JAN 17 · 5PM · SIGNAL LOSS EXPECTED">
+<meta property="og:type" content="website">
+
+<title>RAVE N SUNSET</title>
+
+<style>
+:root{
+  --bg:#ffffff;
+  --ink:#000000;
+  --blue:#003cff;
+  --acid:#00aaff;
+  --alert:#ff0000;
+  
+  /* DYNAMIC VARIABLES */
+  --rgb-shift: 1px;
+  --scan-opacity: 0.1;
+  --flicker-strength: 0.98;
+  
+  --font-head: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "Courier New", monospace;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+html, body {
+  /* Allow scrolling but prevent bounce */
+  height: 100%; 
+  overscroll-behavior: none; 
+  background: #000; /* Seamless transition from intro */
+}
+
+body{
+  font-family:var(--font-body);
+  /* Ensure scrolling works on mobile */
+  overflow-y: auto; 
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === VHS / CRT EFFECTS (Global) === */
+
+.scanlines {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, var(--scan-opacity)),
+    rgba(0, 0, 0, var(--scan-opacity)) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 9998;
+  transition: background 1s linear;
+  backdrop-filter: blur(0.5px);
+}
+
+.tracking-line {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 10vh;
+  background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.1), transparent);
+  animation: scan 8s linear infinite;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@keyframes scan {
+  0% { top: -20%; }
+  100% { top: 120%; }
+}
+
+/* === INTRO ANIMATION (NEWS STYLE) === */
+#intro-layer {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  transition: opacity 0.8s ease-out; /* Smooth exit */
+}
+
+.rec-badge {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  color: var(--alert);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  animation: blink 1s steps(1) infinite;
+}
+
+.rec-badge::before {
+  content: '●';
+  margin-right: 5px;
+}
+
+.intro-text {
+  font-size: clamp(3rem, 15vw, 6rem);
+  line-height: 0.9;
+  text-align: center;
+  transform: scaleY(1);
+  animation: intro-glitch 0.2s infinite;
+  text-shadow: 2px 0 var(--blue), -2px 0 var(--alert);
+}
+
+.intro-sub {
+  font-family: var(--font-mono);
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  letter-spacing: 4px;
+  color: #fff;
+  background: var(--blue);
+  padding: 2px 8px;
+}
+
+@keyframes intro-glitch {
+  0% { transform: translate(0) }
+  20% { transform: translate(-3px, 3px) }
+  40% { transform: translate(-3px, -3px) }
+  60% { transform: translate(3px, 3px) }
+  80% { transform: translate(3px, -3px) }
+  100% { transform: translate(0) }
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+/* === MAIN CONTENT === */
+
+.page-wrapper {
+  background: var(--bg);
+  color: var(--ink);
+  animation: flicker 0.1s infinite;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0; /* Hidden initially */
+  transition: opacity 1s ease-in;
+}
+
+/* Helper to show content */
+.show-content {
+  opacity: 1 !important;
+}
+
+@keyframes flicker {
+  0% { opacity: 1; }
+  50% { opacity: var(--flicker-strength); }
+  100% { opacity: 1; }
+}
+
+.page{
+  width: 100%;
+  max-width:480px;
+  margin:0 auto;
+  padding:2rem 1.5rem 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* TITLE */
+@keyframes text-glitch {
+  0% { transform: translate(0) }
+  20% { transform: translate(-2px, 2px) }
+  40% { transform: translate(-2px, -2px) }
+  60% { transform: translate(2px, 2px) }
+  80% { transform: translate(2px, -2px) }
+  100% { transform: translate(0) }
+}
+
+.title{
+  font-family:var(--font-head);
+  font-size: clamp(3.5rem, 12vw, 4.5rem);
+  line-height:.85;
+  letter-spacing:-2px;
+  cursor: default;
+  mix-blend-mode: hard-light;
+  user-select: none;
+  
+  /* VHS Separation */
+  text-shadow: 
+    var(--rgb-shift) 0px 0px rgba(0,255,255,0.4), 
+    calc(var(--rgb-shift) * -1) 0px 0px rgba(255,0,0,0.4);
+    
+  transition: text-shadow 1s linear;
+}
+
+.title:hover{
+  animation: text-glitch 0.2s cubic-bezier(.25, .46, .45, .94) both infinite;
+  color: var(--blue);
+}
+
+.title span{ color:var(--blue); }
+
+/* BLOCKS */
+.block{
+  margin-top:1.4rem;
+  border:2px solid #000;
+  padding:.8rem;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.1); 
+}
+
+.block.blue{ background:#e9f1ff; }
+.block.black{ background:#000; color:#fff; }
+.block.black .blue{ color:#6bb2ff; }
+
+/* COUNTDOWN */
+.countdown{
+  font-family:var(--font-mono);
+  font-size:1.1rem;
+  letter-spacing:1px;
+}
+
+.countdown span{
+  display:inline-block;
+  min-width:2ch;
+  color:var(--alert);
+  text-shadow: 0 0 5px var(--alert); 
+}
+
+/* INFO TEXT */
+.info{
+  font-size:.95rem;
+  line-height:1.5;
+}
+
+.info strong{ font-weight:700; }
+
+/* DRESS */
+.dress{
+  margin-top:.6rem;
+  font-size:.9rem;
+  letter-spacing:1px;
+}
+.dress .hint{ color:var(--alert); font-weight:700; }
+
+/* BUTTONS */
+.actions{
+  margin-top:2rem;
+  display:flex;
+  flex-wrap:wrap;
+  gap:.6rem;
+}
+
+.btn{
+  border:2px solid #000;
+  background:#fff;
+  padding:.8rem 1.4rem;
+  font-size:.7rem;
+  font-weight: 700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  text-decoration:none;
+  color:#000;
+  cursor: pointer;
+  transition: all 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active { transform: translate(2px, 2px); box-shadow: none; }
+.btn:hover{ background:#000; color:#fff; box-shadow: 3px 3px 0 var(--blue); }
+
+/* FOOTER */
+.footer{
+  margin-top:3rem;
+  font-size:.6rem;
+  letter-spacing:1px;
+  opacity:.75;
+  text-transform:uppercase;
+  border-top: 1px solid #ccc;
+  padding-top: 1rem;
+}
+</style>
+</head>
+
+<body>
+<div class="scanlines"></div>
+<div class="tracking-line"></div>
+
+<div id="intro-layer">
+  <div class="rec-badge">REC</div>
+  <div class="intro-text">
+    RISE<br>N<br>SUNSET
+  </div>
+  <div class="intro-sub">BROADCAST SIGNAL</div>
+</div>
+
+<div class="page-wrapper">
+  <div class="page">
+
+    <div class="title">
+      RAVE<br>
+      <span>N</span><br>
+      SUNSET
+    </div>
+
+    <div class="block blue">
+      <div class="countdown">
+        <span id="d">00</span>D :
+        <span id="h">00</span>H :
+        <span id="m">00</span>M :
+        <span id="s">00</span>S
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="info">
+        <strong class="blue">SATURDAY</strong><br>
+        JANUARY 17, 2026<br>
+        <strong class="blue">5:00 PM · CST</strong><br><br>
+        HUERTAS DEL CARMEN<br>
+        BUGAMBILIAS 16<br>
+        QUERÉTARO, MX
+      </div>
+
+      <div class="dress">
+        COME DRESSED FOR THE SKY<br>
+        <span class="hint">WHITE / BLUE</span>
+      </div>
+    </div>
+
+    <div class="block black">
+      <div class="info">
+        NO PHONES · NO PHOTOS<br>
+        ENTRY AT SUNSET<br>
+        SIGNAL LOSS EXPECTED
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="btn" target="_blank"
+         href="https://www.google.com/maps/search/?api=1&query=Bugambilias+16+Huertas+del+Carmen+Queretaro">
+        MAP
+      </a>
+      <button class="btn" id="cal">CALENDAR</button>
+    </div>
+
+    <div class="footer">
+      RAVE N SUNSET · JAN 17 · CST
+    </div>
+
+  </div>
+</div>
+
+<script>
+// --- INTRO SEQUENCE (Fail-Safe) ---
+window.onload = function() {
+  setTimeout(() => {
+    const intro = document.getElementById('intro-layer');
+    const wrapper = document.querySelector('.page-wrapper');
+    
+    // 1. Fade out intro
+    intro.style.opacity = '0';
+    
+    // 2. Fade in content
+    wrapper.classList.add('show-content');
+    
+    // 3. REMOVE intro from DOM so clicks work (Wait for fade)
+    setTimeout(() => {
+      intro.remove();
+    }, 800);
+    
+  }, 3000); // 3 Seconds
+};
+
+const EVENT={date:"2026-01-17T17:00:00-06:00",duration:5};
+const dEl=document.getElementById('d');
+const hEl=document.getElementById('h');
+const mEl=document.getElementById('m');
+const sEl=document.getElementById('s');
+
+// --- COUNTDOWN ---
+function tick(){
+  const t=new Date(EVENT.date).getTime()-Date.now();
+  if(t<=0){
+    document.querySelector(".countdown").textContent="LIVE NOW";
+    return;
+  }
+  const d=Math.floor(t/864e5),
+        h=Math.floor(t/36e5)%24,
+        m=Math.floor(t/6e4)%60,
+        s=Math.floor(t/1e3)%60;
+  dEl.textContent=String(d).padStart(2,"0");
+  hEl.textContent=String(h).padStart(2,"0");
+  mEl.textContent=String(m).padStart(2,"0");
+  sEl.textContent=String(s).padStart(2,"0");
+}
+setInterval(tick,1000);tick();
+
+// --- CALENDAR ---
+document.getElementById("cal").onclick=()=>{
+  const start=new Date(EVENT.date);
+  const end=new Date(start.getTime()+EVENT.duration*36e5);
+  const f=d=>d.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
+  
+  const ics=[
+    "BEGIN:VCALENDAR","VERSION:2.0",
+    "BEGIN:VEVENT",
+    `UID:${Date.now()}@rns`,
+    `DTSTAMP:${f(new Date())}`,
+    `DTSTART:${f(start)}`,
+    `DTEND:${f(end)}`,
+    "SUMMARY:Rave N Sunset",
+    "DESCRIPTION:White or blue. Bugambilias 16, Huertas del Carmen.",
+    "LOCATION:Bugambilias 16, Huertas del Carmen, Querétaro, MX",
+    "END:VEVENT","END:VCALENDAR"
+  ].join("\r\n");
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if(isIOS) {
+    window.open(url);
+  } else {
+    const a=document.createElement("a");
+    a.href=url;
+    a.download="rave-n-sunset.ics";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+};
+
+// --- CHAOS ENGINE ---
+let secondsOpen = 0;
+const root = document.documentElement;
+
+setInterval(() => {
+  secondsOpen++;
+  const shift = Math.min(1 + (secondsOpen * 0.1), 6);
+  root.style.setProperty('--rgb-shift', shift + "px");
+
+  const opacity = Math.min(0.1 + (secondsOpen * 0.005), 0.35);
+  root.style.setProperty('--scan-opacity', opacity);
+
+  const flicker = Math.max(0.98 - (secondsOpen * 0.005), 0.75);
+  root.style.setProperty('--flicker-strength', flicker);
+}, 1000);
+
+// --- INVERT CLICK (No Audio) ---
+let inverted = false;
+document.body.addEventListener('click', (e) => {
+  if(e.target.closest('a') || e.target.closest('button')) return;
+  inverted = !inverted;
+  document.documentElement.style.filter = inverted ? "invert(1)" : "invert(0)";
+});
+</script>
+</body>
+</html>
