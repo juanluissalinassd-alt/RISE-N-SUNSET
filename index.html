@@ -1,15 +1,11 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<meta property="og:title" content="RAVE N SUNSET">
-<meta property="og:description" content="JAN 17 · 5PM · SIGNAL LOSS EXPECTED">
-<meta property="og:type" content="website">
 
 <title>RAVE N SUNSET</title>
 
@@ -22,9 +18,9 @@
   --alert:#ff0000;
   
   /* DYNAMIC VARIABLES */
-  --rgb-shift: 1px;
-  --scan-opacity: 0.1;
-  --flicker-strength: 0.98;
+  --rgb-shift: 2px;
+  --scan-opacity: 0.25;
+  --flicker-strength: 0.95;
   
   --font-head: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -34,138 +30,207 @@
 *{margin:0;padding:0;box-sizing:border-box}
 
 html, body {
-  /* Allow scrolling but prevent bounce */
   height: 100%; 
+  /* Use dvh for mobile address bar safety */
+  min-height: 100dvh; 
   overscroll-behavior: none; 
-  background: #000; /* Seamless transition from intro */
+  background: #000; 
+  /* Prevent gray tap box on iPhone */
+  -webkit-tap-highlight-color: transparent; 
 }
 
 body{
   font-family:var(--font-body);
-  /* Ensure scrolling works on mobile */
   overflow-y: auto; 
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 
-/* === VHS / CRT EFFECTS (Global) === */
+/* === GLOBAL VHS OVERLAYS === */
 
 .scanlines {
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
+  top: 0; left: 0; width: 100vw; height: 100dvh;
   background: repeating-linear-gradient(
     0deg,
-    rgba(0, 0, 0, var(--scan-opacity)),
-    rgba(0, 0, 0, var(--scan-opacity)) 1px,
+    rgba(0, 0, 0, 0.4),
+    rgba(0, 0, 0, 0.4) 1px,
     transparent 1px,
-    transparent 3px
+    transparent 2px
   );
   pointer-events: none;
-  z-index: 9998;
-  transition: background 1s linear;
-  backdrop-filter: blur(0.5px);
+  z-index: 2147483647; 
+  backdrop-filter: sepia(20%) contrast(1.2) brightness(0.9);
 }
 
 .tracking-line {
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 10vh;
-  background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.1), transparent);
-  animation: scan 8s linear infinite;
+  top: 0; left: 0; width: 100vw; height: 15vh;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), rgba(0,0,0,0.5), transparent);
+  animation: scan 4s linear infinite;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 2147483647;
+  mix-blend-mode: exclusion;
 }
 
 @keyframes scan {
-  0% { top: -20%; }
-  100% { top: 120%; }
+  0% { top: -20%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 120%; opacity: 0; }
 }
 
-/* === INTRO ANIMATION (NEWS STYLE) === */
+/* === INTRO LAYER (CRT TUBE) === */
 #intro-layer {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0; left: 0; width: 100%; height: 100dvh;
   background: #000;
-  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+.crt-screen {
+  position: relative;
+  /* Responsive sizing for mobile vs desktop */
+  width: 90vw;
+  height: 80vh; 
+  /* Prevent it from being too skinny on phones */
+  min-height: 500px;
+  max-width: 800px;
+  
+  background: #000;
+  animation: horror-pulse 0.15s infinite alternate;
+  
+  /* The "Bulge" - tweaked for mobile aspect ratios */
+  border-radius: 20px;
+  
+  box-shadow: 
+    0 0 0 100vmax #000, /* Infinite black bezel */
+    inset 0 0 80px rgba(0,0,0,1); /* Vignette */
+    
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 10000;
-  font-family: var(--font-head);
-  text-transform: uppercase;
-  transition: opacity 0.8s ease-out; /* Smooth exit */
-}
-
-.rec-badge {
-  position: absolute;
-  top: 2rem;
-  right: 2rem;
-  color: var(--alert);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  letter-spacing: 2px;
-  animation: blink 1s steps(1) infinite;
-}
-
-.rec-badge::before {
-  content: '●';
-  margin-right: 5px;
-}
-
-.intro-text {
-  font-size: clamp(3rem, 15vw, 6rem);
-  line-height: 0.9;
   text-align: center;
-  transform: scaleY(1);
-  animation: intro-glitch 0.2s infinite;
-  text-shadow: 2px 0 var(--blue), -2px 0 var(--alert);
+  overflow: hidden;
+  
+  transform: perspective(1000px) scale(0.95);
 }
 
-.intro-sub {
+/* The Glass Glare */
+.crt-screen::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.08), transparent 60%);
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 20px;
+}
+
+@keyframes horror-pulse {
+  0% { background: #000000; }
+  50% { background: #1a0000; }
+  100% { background: #350000; } 
+}
+
+.studio-54 {
+  font-family: var(--font-head);
+  font-size: clamp(2.5rem, 12vw, 5rem);
+  line-height: 0.9;
+  text-transform: uppercase;
+  font-style: italic;
+  z-index: 5;
+  color: transparent;
+  -webkit-text-stroke: 1px #ffd700;
+  text-shadow: 4px 4px 0px #8B0000, -2px -2px 0px #000088;
+  animation: tear-signal 2.5s infinite steps(1);
+}
+
+.studio-54 .presents {
+  display: block;
+  font-size: 0.4em;
   font-family: var(--font-mono);
-  margin-top: 1rem;
-  font-size: 0.8rem;
-  letter-spacing: 4px;
   color: #fff;
-  background: var(--blue);
-  padding: 2px 8px;
+  letter-spacing: 0.5em;
+  margin-top: 10px;
+  text-shadow: none;
+  -webkit-text-stroke: 0;
+  background: #000;
+  padding: 5px;
+  transform: skewX(-15deg);
 }
 
-@keyframes intro-glitch {
-  0% { transform: translate(0) }
-  20% { transform: translate(-3px, 3px) }
-  40% { transform: translate(-3px, -3px) }
-  60% { transform: translate(3px, 3px) }
-  80% { transform: translate(3px, -3px) }
-  100% { transform: translate(0) }
+@keyframes tear-signal {
+  0% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+  5% { clip-path: inset(10% 0 80% 0); transform: translateX(-5px); }
+  10% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+  40% { clip-path: inset(40% 0 10% 0); transform: translateX(10px) skewX(20deg); filter: invert(1); }
+  45% { clip-path: inset(0 0 0 0); transform: translateX(0); filter: invert(0); }
+  80% { clip-path: inset(0 0 0 0); opacity: 1; }
+  82% { opacity: 0; }
+  84% { opacity: 1; }
+  100% { clip-path: inset(0 0 0 0); }
 }
 
-@keyframes blink { 50% { opacity: 0; } }
+.channel-indicator {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  font-family: var(--font-mono);
+  color: #0f0;
+  font-size: 1rem;
+  text-shadow: 0 0 5px #0f0;
+  border: 2px solid #0f0;
+  padding: 5px 8px;
+  box-shadow: 0 0 10px #0f0;
+  z-index: 5;
+}
+
+/* === STATIC BLAST === */
+#static-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: repeating-conic-gradient(#000 0% 25%, #fff 0% 50%);
+  background-size: 4px 4px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20000;
+  mix-blend-mode: hard-light;
+}
+
+.channel-switch-active {
+  animation: static-nuke 0.8s steps(3) forwards;
+}
+
+@keyframes static-nuke {
+  0% { opacity: 0; }
+  10% { opacity: 1; filter: invert(1); transform: scale(1.1); }
+  30% { opacity: 1; filter: invert(0); background-size: 20px 20px; transform: translateX(-10px); }
+  50% { opacity: 1; filter: contrast(5); transform: skewX(50deg); }
+  80% { opacity: 0.5; }
+  100% { opacity: 0; pointer-events: none; }
+}
 
 /* === MAIN CONTENT === */
-
 .page-wrapper {
   background: var(--bg);
   color: var(--ink);
-  animation: flicker 0.1s infinite;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  opacity: 0; /* Hidden initially */
-  transition: opacity 1s ease-in;
+  opacity: 0; 
+  transition: opacity 0.1s; 
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Helper to show content */
-.show-content {
-  opacity: 1 !important;
-}
-
-@keyframes flicker {
-  0% { opacity: 1; }
-  50% { opacity: var(--flicker-strength); }
-  100% { opacity: 1; }
-}
+.show-content { opacity: 1 !important; }
 
 .page{
   width: 100%;
@@ -176,13 +241,13 @@ body{
   z-index: 1;
 }
 
-/* TITLE */
+/* GLITCHY TITLE */
 @keyframes text-glitch {
   0% { transform: translate(0) }
-  20% { transform: translate(-2px, 2px) }
-  40% { transform: translate(-2px, -2px) }
-  60% { transform: translate(2px, 2px) }
-  80% { transform: translate(2px, -2px) }
+  20% { transform: translate(-3px, 3px) }
+  40% { transform: translate(-3px, -3px) }
+  60% { transform: translate(3px, 3px) }
+  80% { transform: translate(3px, -3px) }
   100% { transform: translate(0) }
 }
 
@@ -194,41 +259,32 @@ body{
   cursor: default;
   mix-blend-mode: hard-light;
   user-select: none;
-  
-  /* VHS Separation */
-  text-shadow: 
-    var(--rgb-shift) 0px 0px rgba(0,255,255,0.4), 
-    calc(var(--rgb-shift) * -1) 0px 0px rgba(255,0,0,0.4);
-    
-  transition: text-shadow 1s linear;
+  text-shadow: 2px 2px 0px rgba(0,255,255,0.5), -2px -2px 0px rgba(255,0,0,0.5);
+  animation: text-glitch 3s infinite steps(10);
+  transition: all 0.2s;
 }
 
-.title:hover{
-  animation: text-glitch 0.2s cubic-bezier(.25, .46, .45, .94) both infinite;
-  color: var(--blue);
+.title:active { /* Mobile feedback */
+  transform: scale(0.98);
 }
 
 .title span{ color:var(--blue); }
 
-/* BLOCKS */
 .block{
   margin-top:1.4rem;
   border:2px solid #000;
   padding:.8rem;
   box-shadow: 4px 4px 0px rgba(0,0,0,0.1); 
 }
-
 .block.blue{ background:#e9f1ff; }
 .block.black{ background:#000; color:#fff; }
 .block.black .blue{ color:#6bb2ff; }
 
-/* COUNTDOWN */
 .countdown{
   font-family:var(--font-mono);
   font-size:1.1rem;
   letter-spacing:1px;
 }
-
 .countdown span{
   display:inline-block;
   min-width:2ch;
@@ -236,30 +292,12 @@ body{
   text-shadow: 0 0 5px var(--alert); 
 }
 
-/* INFO TEXT */
-.info{
-  font-size:.95rem;
-  line-height:1.5;
-}
-
+.info{ font-size:.95rem; line-height:1.5; }
 .info strong{ font-weight:700; }
-
-/* DRESS */
-.dress{
-  margin-top:.6rem;
-  font-size:.9rem;
-  letter-spacing:1px;
-}
+.dress{ margin-top:.6rem; font-size:.9rem; letter-spacing:1px; }
 .dress .hint{ color:var(--alert); font-weight:700; }
 
-/* BUTTONS */
-.actions{
-  margin-top:2rem;
-  display:flex;
-  flex-wrap:wrap;
-  gap:.6rem;
-}
-
+.actions{ margin-top:2rem; display:flex; flex-wrap:wrap; gap:.6rem; }
 .btn{
   border:2px solid #000;
   background:#fff;
@@ -274,11 +312,9 @@ body{
   transition: all 0.1s;
   -webkit-tap-highlight-color: transparent;
 }
-
 .btn:active { transform: translate(2px, 2px); box-shadow: none; }
 .btn:hover{ background:#000; color:#fff; box-shadow: 3px 3px 0 var(--blue); }
 
-/* FOOTER */
 .footer{
   margin-top:3rem;
   font-size:.6rem;
@@ -288,25 +324,49 @@ body{
   border-top: 1px solid #ccc;
   padding-top: 1rem;
 }
+
+/* === HORROR MODE (EASTER EGG) === */
+body.flesh-mode {
+  filter: invert(1) contrast(1.5) hue-rotate(90deg);
+  background: #300;
+}
+body.flesh-mode .title {
+  animation: tear-signal 0.2s infinite;
+  color: red !important;
+}
+
+/* === TV OFF ANIMATION (EASTER EGG) === */
+.tv-off-animation {
+  animation: turn-off 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes turn-off {
+  0% { transform: scale(1, 1); filter: brightness(1); }
+  60% { transform: scale(1, 0.005); filter: brightness(10); }
+  100% { transform: scale(0, 0); filter: brightness(0); }
+}
 </style>
 </head>
 
 <body>
 <div class="scanlines"></div>
 <div class="tracking-line"></div>
+<div id="static-overlay"></div>
 
 <div id="intro-layer">
-  <div class="rec-badge">REC</div>
-  <div class="intro-text">
-    RISE<br>N<br>SUNSET
+  <div class="crt-screen">
+    <div class="channel-indicator">CH 83</div>
+    <div class="studio-54">
+      STUDIO 54<br>
+      <span class="presents">PRESENTS</span>
+    </div>
   </div>
-  <div class="intro-sub">BROADCAST SIGNAL</div>
 </div>
 
-<div class="page-wrapper">
+<div class="page-wrapper" id="main-wrapper">
   <div class="page">
 
-    <div class="title">
+    <div class="title" id="egg-trigger">
       RAVE<br>
       <span>N</span><br>
       SUNSET
@@ -361,107 +421,107 @@ body{
 </div>
 
 <script>
-// --- INTRO SEQUENCE (Fail-Safe) ---
+// --- INTRO SEQUENCE ---
 window.onload = function() {
+  const intro = document.getElementById('intro-layer');
+  const staticOverlay = document.getElementById('static-overlay');
+  const wrapper = document.querySelector('.page-wrapper');
+  
   setTimeout(() => {
-    const intro = document.getElementById('intro-layer');
-    const wrapper = document.querySelector('.page-wrapper');
-    
-    // 1. Fade out intro
-    intro.style.opacity = '0';
-    
-    // 2. Fade in content
-    wrapper.classList.add('show-content');
-    
-    // 3. REMOVE intro from DOM so clicks work (Wait for fade)
+    staticOverlay.classList.add('channel-switch-active');
     setTimeout(() => {
-      intro.remove();
-    }, 800);
-    
-  }, 3000); // 3 Seconds
+      intro.style.display = 'none'; 
+      wrapper.classList.add('show-content'); 
+      document.documentElement.style.setProperty('--flicker-strength', '0.5');
+    }, 300);
+    setTimeout(() => { intro.remove(); }, 1000);
+  }, 3000); 
 };
 
+// --- COUNTDOWN & CALENDAR (Standard Logic) ---
 const EVENT={date:"2026-01-17T17:00:00-06:00",duration:5};
 const dEl=document.getElementById('d');
 const hEl=document.getElementById('h');
 const mEl=document.getElementById('m');
 const sEl=document.getElementById('s');
 
-// --- COUNTDOWN ---
 function tick(){
   const t=new Date(EVENT.date).getTime()-Date.now();
   if(t<=0){
     document.querySelector(".countdown").textContent="LIVE NOW";
     return;
   }
-  const d=Math.floor(t/864e5),
-        h=Math.floor(t/36e5)%24,
-        m=Math.floor(t/6e4)%60,
-        s=Math.floor(t/1e3)%60;
-  dEl.textContent=String(d).padStart(2,"0");
-  hEl.textContent=String(h).padStart(2,"0");
-  mEl.textContent=String(m).padStart(2,"0");
-  sEl.textContent=String(s).padStart(2,"0");
+  const d=Math.floor(t/864e5), h=Math.floor(t/36e5)%24, m=Math.floor(t/6e4)%60, s=Math.floor(t/1e3)%60;
+  dEl.textContent=String(d).padStart(2,"0"); hEl.textContent=String(h).padStart(2,"0");
+  mEl.textContent=String(m).padStart(2,"0"); sEl.textContent=String(s).padStart(2,"0");
 }
 setInterval(tick,1000);tick();
 
-// --- CALENDAR ---
 document.getElementById("cal").onclick=()=>{
   const start=new Date(EVENT.date);
   const end=new Date(start.getTime()+EVENT.duration*36e5);
   const f=d=>d.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
-  
-  const ics=[
-    "BEGIN:VCALENDAR","VERSION:2.0",
-    "BEGIN:VEVENT",
-    `UID:${Date.now()}@rns`,
-    `DTSTAMP:${f(new Date())}`,
-    `DTSTART:${f(start)}`,
-    `DTEND:${f(end)}`,
-    "SUMMARY:Rave N Sunset",
-    "DESCRIPTION:White or blue. Bugambilias 16, Huertas del Carmen.",
-    "LOCATION:Bugambilias 16, Huertas del Carmen, Querétaro, MX",
-    "END:VEVENT","END:VCALENDAR"
-  ].join("\r\n");
-
+  const ics=["BEGIN:VCALENDAR","VERSION:2.0","BEGIN:VEVENT",`UID:${Date.now()}@rns`,`DTSTAMP:${f(new Date())}`,`DTSTART:${f(start)}`,`DTEND:${f(end)}`,"SUMMARY:Rave N Sunset","DESCRIPTION:White or blue. Bugambilias 16, Huertas del Carmen.","LOCATION:Bugambilias 16, Huertas del Carmen, Querétaro, MX","END:VEVENT","END:VCALENDAR"].join("\r\n");
   const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-  
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  if(isIOS) {
-    window.open(url);
-  } else {
-    const a=document.createElement("a");
-    a.href=url;
-    a.download="rave-n-sunset.ics";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  if(isIOS) { window.open(url); } else {
+    const a=document.createElement("a"); a.href=url; a.download="rave-n-sunset.ics";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   }
 };
 
 // --- CHAOS ENGINE ---
 let secondsOpen = 0;
 const root = document.documentElement;
-
 setInterval(() => {
   secondsOpen++;
-  const shift = Math.min(1 + (secondsOpen * 0.1), 6);
+  const shift = Math.min(2 + (secondsOpen * 0.1), 8); 
   root.style.setProperty('--rgb-shift', shift + "px");
-
-  const opacity = Math.min(0.1 + (secondsOpen * 0.005), 0.35);
+  const opacity = Math.min(0.2 + (secondsOpen * 0.005), 0.4);
   root.style.setProperty('--scan-opacity', opacity);
-
-  const flicker = Math.max(0.98 - (secondsOpen * 0.005), 0.75);
-  root.style.setProperty('--flicker-strength', flicker);
 }, 1000);
 
-// --- INVERT CLICK (No Audio) ---
-let inverted = false;
-document.body.addEventListener('click', (e) => {
-  if(e.target.closest('a') || e.target.closest('button')) return;
-  inverted = !inverted;
-  document.documentElement.style.filter = inverted ? "invert(1)" : "invert(0)";
+// --- EASTER EGG 1: KEYBOARD "FLESH" MODE ---
+let keyBuffer = "";
+document.addEventListener('keydown', (e) => {
+  keyBuffer += e.key.toUpperCase();
+  if (keyBuffer.length > 5) keyBuffer = keyBuffer.slice(-5);
+  
+  if (keyBuffer === "FLESH") {
+    document.body.classList.toggle('flesh-mode');
+    const title = document.querySelector('.title');
+    if(document.body.classList.contains('flesh-mode')){
+      title.innerHTML = "LONG LIVE<br>THE NEW<br>FLESH";
+    } else {
+      title.innerHTML = "RAVE<br><span>N</span><br>SUNSET";
+    }
+  }
+});
+
+// --- EASTER EGG 2: TAP SPAM "TV KILL" ---
+let tapCount = 0;
+let tapTimer = null;
+const eggTrigger = document.getElementById('egg-trigger');
+const wrapper = document.getElementById('main-wrapper');
+
+eggTrigger.addEventListener('click', () => {
+  tapCount++;
+  clearTimeout(tapTimer);
+  
+  // Reset count if they stop tapping for 1 second
+  tapTimer = setTimeout(() => { tapCount = 0; }, 1000);
+  
+  if (tapCount >= 7) {
+    // TRIGGER THE KILL SWITCH
+    tapCount = 0;
+    document.body.classList.add('tv-off-animation');
+    
+    setTimeout(() => {
+      // Reboot
+      location.reload();
+    }, 2500);
+  }
 });
 </script>
 </body>
