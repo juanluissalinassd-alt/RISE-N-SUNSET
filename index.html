@@ -31,11 +31,9 @@
 
 html, body {
   height: 100%; 
-  /* Use dvh for mobile address bar safety */
   min-height: 100dvh; 
   overscroll-behavior: none; 
   background: #000; 
-  /* Prevent gray tap box on iPhone */
   -webkit-tap-highlight-color: transparent; 
 }
 
@@ -95,34 +93,25 @@ body{
 
 .crt-screen {
   position: relative;
-  /* Responsive sizing for mobile vs desktop */
   width: 90vw;
   height: 80vh; 
-  /* Prevent it from being too skinny on phones */
   min-height: 500px;
   max-width: 800px;
-  
   background: #000;
   animation: horror-pulse 0.15s infinite alternate;
-  
-  /* The "Bulge" - tweaked for mobile aspect ratios */
   border-radius: 20px;
-  
   box-shadow: 
-    0 0 0 100vmax #000, /* Infinite black bezel */
-    inset 0 0 80px rgba(0,0,0,1); /* Vignette */
-    
+    0 0 0 100vmax #000, 
+    inset 0 0 80px rgba(0,0,0,1);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
   overflow: hidden;
-  
   transform: perspective(1000px) scale(0.95);
 }
 
-/* The Glass Glare */
 .crt-screen::before {
   content: "";
   position: absolute;
@@ -192,16 +181,16 @@ body{
   z-index: 5;
 }
 
-/* === STATIC BLAST === */
+/* === STATIC BLAST & OVERLAY === */
 #static-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
   background: repeating-conic-gradient(#000 0% 25%, #fff 0% 50%);
   background-size: 4px 4px;
-  opacity: 0;
+  opacity: 0; /* Hidden by default */
   pointer-events: none;
   z-index: 20000;
-  mix-blend-mode: hard-light;
+  mix-blend-mode: overlay;
 }
 
 .channel-switch-active {
@@ -215,6 +204,24 @@ body{
   50% { opacity: 1; filter: contrast(5); transform: skewX(50deg); }
   80% { opacity: 0.5; }
   100% { opacity: 0; pointer-events: none; }
+}
+
+/* === VHS STROBE OVERLAY === */
+.vhs-strobe-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 20001; /* Above static */
+  display: none;
+}
+/* The Moving Bar */
+.vhs-strobe-overlay::after {
+  content: "";
+  position: absolute;
+  left: 0; width: 100%; height: 20vh;
+  background: rgba(255,255,255,0.1);
+  box-shadow: 0 0 50px rgba(255,255,255,0.3);
+  top: -20%;
 }
 
 /* === MAIN CONTENT === */
@@ -264,10 +271,7 @@ body{
   transition: all 0.2s;
 }
 
-.title:active { /* Mobile feedback */
-  transform: scale(0.98);
-}
-
+.title:active { transform: scale(0.98); }
 .title span{ color:var(--blue); }
 
 .block{
@@ -345,6 +349,115 @@ body.flesh-mode .title {
   60% { transform: scale(1, 0.005); filter: brightness(10); }
   100% { transform: scale(0, 0); filter: brightness(0); }
 }
+
+/* ========================================= */
+/* ===  SIGNAL BREACH ENDING (ACTIVE)    === */
+/* ========================================= */
+
+body.live-active {
+  background: #200000 !important; 
+  animation: panic-pulse 0.5s infinite alternate;
+}
+
+/* 1. NOTABLE VHS OVERLAYS */
+body.live-active #static-overlay {
+  opacity: 0.35 !important; /* MUCH HIGHER OPACITY */
+  animation: noise-move 0.2s infinite;
+  display: block;
+}
+body.live-active .vhs-strobe-overlay {
+  display: block;
+  animation: strobe-flash 0.15s infinite alternate; 
+}
+body.live-active .vhs-strobe-overlay::after {
+  animation: bar-roll 4s linear infinite;
+  background: rgba(255,255,255,0.15);
+}
+
+@keyframes noise-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 100px 100px; }
+}
+@keyframes bar-roll {
+  0% { top: -20%; opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { top: 120%; opacity: 0; }
+}
+@keyframes strobe-flash {
+  0% { background: transparent; }
+  95% { background: transparent; }
+  100% { background: rgba(255,255,255,0.15); } 
+}
+
+body.live-active .page-wrapper {
+  background: transparent;
+  color: #fff;
+}
+
+/* 2. ACTUAL GLITCHING TITLE (TEARING) */
+body.live-active .title {
+  color: #ff0000;
+  text-shadow: 4px 4px 0 #000;
+  /* Re-using the tear-signal animation for violent glitching */
+  animation: tear-signal 2s infinite steps(2); 
+}
+body.live-active .title span { color: #ff0000; }
+
+body.live-active .block {
+  border-color: #ff0000;
+  background: #000;
+  box-shadow: 5px 5px 0 #500;
+}
+
+/* 3. SIGNAL BOX: RED BORDER, RED GLOW */
+body.live-active .block.blue {
+  background: #000; 
+  border: 2px solid #ff0000; 
+  box-shadow: 0 0 15px #ff0000; /* Red Glow */
+  color: #ff0000; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body.live-active .countdown {
+  font-weight: 900;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  text-align: center;
+  line-height: 1.1;
+  color: #ff0000; 
+  text-shadow: 0 0 10px #ff0000; 
+  width: 100%;
+  animation: simple-blink 1.5s infinite step-end;
+}
+
+body.live-active .info, 
+body.live-active .dress {
+  color: #ffcccc;
+}
+
+/* 4. BUTTONS: BLACK BG, RED TEXT, RED BORDER */
+body.live-active .btn {
+  background: #000 !important;
+  color: #ff0000 !important;
+  border: 2px solid #ff0000 !important;
+  box-shadow: 0 0 10px #ff0000;
+}
+body.live-active .btn:hover {
+  background: #ff0000 !important;
+  color: #000 !important;
+}
+
+@keyframes panic-pulse {
+  0% { background-color: #200000; filter: contrast(1.2); }
+  100% { background-color: #400000; filter: contrast(2); }
+}
+
+@keyframes simple-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
 </style>
 </head>
 
@@ -352,6 +465,7 @@ body.flesh-mode .title {
 <div class="scanlines"></div>
 <div class="tracking-line"></div>
 <div id="static-overlay"></div>
+<div class="vhs-strobe-overlay"></div>
 
 <div id="intro-layer">
   <div class="crt-screen">
@@ -421,12 +535,25 @@ body.flesh-mode .title {
 </div>
 
 <script>
+// ==========================================
+//  DEPLOYMENT SETTING
+//  true  = Preview Ending Immediately
+//  false = Wait for Real Date (Jan 17 2026)
+// ==========================================
+const TEST_LIVE_MODE = false; 
+
 // --- INTRO SEQUENCE ---
 window.onload = function() {
   const intro = document.getElementById('intro-layer');
   const staticOverlay = document.getElementById('static-overlay');
   const wrapper = document.querySelector('.page-wrapper');
   
+  if(TEST_LIVE_MODE) {
+    intro.remove();
+    wrapper.classList.add('show-content');
+    return;
+  }
+
   setTimeout(() => {
     staticOverlay.classList.add('channel-switch-active');
     setTimeout(() => {
@@ -438,25 +565,58 @@ window.onload = function() {
   }, 3000); 
 };
 
-// --- COUNTDOWN & CALENDAR (Standard Logic) ---
-const EVENT={date:"2026-01-17T17:00:00-06:00",duration:5};
-const dEl=document.getElementById('d');
-const hEl=document.getElementById('h');
-const mEl=document.getElementById('m');
-const sEl=document.getElementById('s');
+// --- COUNTDOWN LOGIC ---
+const EVENT = { date: "2026-01-17T17:00:00-06:00", duration: 5 };
+const dEl = document.getElementById('d');
+const hEl = document.getElementById('h');
+const mEl = document.getElementById('m');
+const sEl = document.getElementById('s');
+let liveTriggered = false;
 
 function tick(){
-  const t=new Date(EVENT.date).getTime()-Date.now();
-  if(t<=0){
-    document.querySelector(".countdown").textContent="LIVE NOW";
+  const now = Date.now();
+  // If Test Mode is ON, pretend the event was 1 second ago
+  const eventTime = TEST_LIVE_MODE ? now - 1000 : new Date(EVENT.date).getTime();
+  const t = eventTime - now;
+
+  // === THE ENDING TRIGGER ===
+  if(t <= 0){
+    if(!liveTriggered) triggerSignalBreach();
     return;
   }
+
   const d=Math.floor(t/864e5), h=Math.floor(t/36e5)%24, m=Math.floor(t/6e4)%60, s=Math.floor(t/1e3)%60;
   dEl.textContent=String(d).padStart(2,"0"); hEl.textContent=String(h).padStart(2,"0");
   mEl.textContent=String(m).padStart(2,"0"); sEl.textContent=String(s).padStart(2,"0");
 }
-setInterval(tick,1000);tick();
 
+function triggerSignalBreach() {
+  liveTriggered = true;
+  document.body.classList.add('live-active');
+  
+  // Update Countdown Text Only
+  const countBox = document.querySelector(".countdown");
+  countBox.innerHTML = "SIGNAL<br>ACQUIRED";
+  
+  // Maximize Chaos Variables (INTENSE OVERLAY)
+  const root = document.documentElement;
+  root.style.setProperty('--rgb-shift', '20px'); 
+  root.style.setProperty('--scan-opacity', '0.7'); 
+  root.style.setProperty('--flicker-strength', '0.1'); 
+  
+  // Play a "static blast" effect visually
+  const staticOverlay = document.getElementById('static-overlay');
+  if(staticOverlay) {
+    staticOverlay.classList.remove('channel-switch-active'); 
+    void staticOverlay.offsetWidth; // trigger reflow
+    staticOverlay.classList.add('channel-switch-active');
+  }
+}
+
+setInterval(tick,1000);
+tick();
+
+// --- CALENDAR BUTTON ---
 document.getElementById("cal").onclick=()=>{
   const start=new Date(EVENT.date);
   const end=new Date(start.getTime()+EVENT.duration*36e5);
@@ -471,10 +631,13 @@ document.getElementById("cal").onclick=()=>{
   }
 };
 
-// --- CHAOS ENGINE ---
+// --- CHAOS ENGINE (Standard Mode) ---
 let secondsOpen = 0;
 const root = document.documentElement;
 setInterval(() => {
+  // Only run standard chaos if we haven't triggered the live event
+  if(liveTriggered) return; 
+
   secondsOpen++;
   const shift = Math.min(2 + (secondsOpen * 0.1), 8); 
   root.style.setProperty('--rgb-shift', shift + "px");
