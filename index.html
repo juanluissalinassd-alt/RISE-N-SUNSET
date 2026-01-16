@@ -43,6 +43,7 @@ body{
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
+  transition: background-color 1s ease;
 }
 
 /* === GLOBAL VHS OVERLAYS === */
@@ -279,6 +280,7 @@ body{
   border:2px solid #000;
   padding:.8rem;
   box-shadow: 4px 4px 0px rgba(0,0,0,0.1); 
+  transition: transform 0.5s ease;
 }
 .block.blue{ background:#e9f1ff; }
 .block.black{ background:#000; color:#fff; }
@@ -329,14 +331,100 @@ body{
   padding-top: 1rem;
 }
 
-/* === HORROR MODE (EASTER EGG) === */
-body.flesh-mode {
-  filter: invert(1) contrast(1.5) hue-rotate(90deg);
-  background: #300;
+/* HIDDEN VOID TRIGGER */
+#void-trigger {
+  margin-top: 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: #1a1a1a;
+  text-align: center;
+  letter-spacing: 2px;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: all 0.3s ease;
+  user-select: none;
+  padding: 10px;
 }
+#void-trigger:hover, #void-trigger:active {
+  color: var(--alert);
+  opacity: 1;
+  text-shadow: 0 0 4px red;
+  letter-spacing: 4px;
+}
+
+/* === BIO-VEIN OVERLAY === */
+#vein-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+  mix-blend-mode: multiply;
+}
+
+/* === HORROR MODE (FLESH) === */
+body.flesh-mode {
+  background: #000 !important;
+}
+
+/* HIJACK TRANSITION */
+body.hijack-active {
+  animation: signal-hijack 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes signal-hijack {
+  10%, 90% { transform: translate3d(-2px, 0, 0); filter: invert(1); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); filter: invert(0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* ACTIVATED FLESH STYLES */
+body.flesh-mode #vein-overlay {
+  opacity: 0.7;
+  animation: vascular-pump 0.857s infinite; /* ~70 BPM */
+}
+
+body.flesh-mode .page-wrapper {
+  background: transparent;
+  color: #ff0000; /* Red Text */
+}
+
 body.flesh-mode .title {
-  animation: tear-signal 0.2s infinite;
-  color: red !important;
+  color: #ff0000 !important;
+  text-shadow: 0 0 15px #ff0000;
+  animation: tear-signal 3s infinite steps(1); 
+}
+
+body.flesh-mode .block {
+  background: rgba(20, 0, 0, 0.8);
+  border-color: #500;
+  box-shadow: 0 0 10px #300;
+  animation: breathing-ui 1.714s ease-in-out infinite alternate; /* 2 beats */
+}
+body.flesh-mode .block.blue {
+  color: #ff0000;
+  background: #000;
+}
+
+body.flesh-mode .btn {
+  background: #100;
+  color: #500;
+  border-color: #500;
+}
+
+@keyframes vascular-pump {
+  0% { transform: scale(1); filter: contrast(1) brightness(1); }
+  15% { transform: scale(1.02); filter: contrast(1.2) brightness(1.3); } /* Lub */
+  30% { transform: scale(1.01); filter: contrast(1.1) brightness(1.1); }
+  45% { transform: scale(1.03); filter: contrast(1.3) brightness(1.4); } /* Dub */
+  100% { transform: scale(1); filter: contrast(1) brightness(1); }
+}
+
+@keyframes breathing-ui {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.02); }
 }
 
 /* === TV OFF ANIMATION (EASTER EGG) === */
@@ -467,6 +555,17 @@ body.live-active .btn:hover {
 <div id="static-overlay"></div>
 <div class="vhs-strobe-overlay"></div>
 
+<svg id="vein-overlay" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <defs>
+    <filter id="vein-noise" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise"/>
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 18 -7" in="noise" result="coloredNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="50" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="#500000" filter="url(#vein-noise)" opacity="0.8"/>
+</svg>
+
 <div id="intro-layer">
   <div class="crt-screen">
     <div class="channel-indicator">CH 83</div>
@@ -530,6 +629,8 @@ body.live-active .btn:hover {
     <div class="footer">
       RAVE N SUNSET · JAN 17 · CST
     </div>
+    
+    <div id="void-trigger">ENTER THE VOID</div>
 
   </div>
 </div>
@@ -645,6 +746,82 @@ setInterval(() => {
   root.style.setProperty('--scan-opacity', opacity);
 }, 1000);
 
+// ============================================
+// === FLESH MODE ENGINE (Audio & Visuals) ===
+// ============================================
+
+let audioCtx;
+let heartInterval;
+const BPM_INTERVAL = 857; // ~70 BPM (60000 / 70)
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioContext();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function playHeartbeat() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  
+  // OSC 1: LUB (Lower, Thud)
+  const osc1 = audioCtx.createOscillator();
+  const gain1 = audioCtx.createGain();
+  osc1.frequency.value = 55; // Low thud
+  osc1.type = 'triangle';
+  osc1.connect(gain1);
+  gain1.connect(audioCtx.destination);
+  
+  osc1.start(t);
+  gain1.gain.setValueAtTime(0, t);
+  gain1.gain.linearRampToValueAtTime(0.8, t + 0.05);
+  gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+  osc1.stop(t + 0.2);
+
+  // OSC 2: DUB (Slightly higher, sharper)
+  const osc2 = audioCtx.createOscillator();
+  const gain2 = audioCtx.createGain();
+  osc2.frequency.value = 45;
+  osc2.type = 'triangle';
+  osc2.connect(gain2);
+  gain2.connect(audioCtx.destination);
+  
+  osc2.start(t + 0.25); // Offset
+  gain2.gain.setValueAtTime(0, t + 0.25);
+  gain2.gain.linearRampToValueAtTime(0.6, t + 0.3);
+  gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+  osc2.stop(t + 0.6);
+}
+
+function toggleFleshMode() {
+  const body = document.body;
+  const title = document.querySelector('.title');
+  
+  // Trigger Hijack Animation
+  body.classList.add('hijack-active');
+  setTimeout(() => body.classList.remove('hijack-active'), 600);
+
+  const isActive = body.classList.toggle('flesh-mode');
+
+  if (isActive) {
+    title.innerHTML = "LONG LIVE<br>THE NEW<br>FLESH";
+    
+    // Start Audio
+    initAudio();
+    playHeartbeat(); // First beat immediately
+    clearInterval(heartInterval);
+    heartInterval = setInterval(playHeartbeat, BPM_INTERVAL);
+    
+  } else {
+    title.innerHTML = "RAVE<br><span>N</span><br>SUNSET";
+    clearInterval(heartInterval);
+  }
+}
+
 // --- EASTER EGG 1: KEYBOARD "FLESH" MODE ---
 let keyBuffer = "";
 document.addEventListener('keydown', (e) => {
@@ -652,13 +829,7 @@ document.addEventListener('keydown', (e) => {
   if (keyBuffer.length > 5) keyBuffer = keyBuffer.slice(-5);
   
   if (keyBuffer === "FLESH") {
-    document.body.classList.toggle('flesh-mode');
-    const title = document.querySelector('.title');
-    if(document.body.classList.contains('flesh-mode')){
-      title.innerHTML = "LONG LIVE<br>THE NEW<br>FLESH";
-    } else {
-      title.innerHTML = "RAVE<br><span>N</span><br>SUNSET";
-    }
+    toggleFleshMode();
   }
 });
 
@@ -666,24 +837,32 @@ document.addEventListener('keydown', (e) => {
 let tapCount = 0;
 let tapTimer = null;
 const eggTrigger = document.getElementById('egg-trigger');
-const wrapper = document.getElementById('main-wrapper');
 
 eggTrigger.addEventListener('click', () => {
   tapCount++;
   clearTimeout(tapTimer);
-  
-  // Reset count if they stop tapping for 1 second
   tapTimer = setTimeout(() => { tapCount = 0; }, 1000);
   
   if (tapCount >= 7) {
-    // TRIGGER THE KILL SWITCH
     tapCount = 0;
     document.body.classList.add('tv-off-animation');
-    
-    setTimeout(() => {
-      // Reboot
-      location.reload();
-    }, 2500);
+    setTimeout(() => { location.reload(); }, 2500);
+  }
+});
+
+// --- EASTER EGG 3: MOBILE "VOID" TRIGGER ---
+document.getElementById('void-trigger').addEventListener('click', () => {
+  // Try to initialize audio on first interaction (iOS policy)
+  initAudio();
+  
+  const pass = prompt("/// AWAITING INPUT ///");
+  if(pass && pass.toUpperCase().trim() === "FLESH") {
+    // Check if mode is already active to prevent double toggle
+    if(!document.body.classList.contains('flesh-mode')) {
+      toggleFleshMode();
+    }
+  } else if (pass) {
+    alert("ACCESS DENIED");
   }
 });
 </script>
