@@ -546,6 +546,18 @@ body.live-active .btn:hover {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
+
+/* === BSOD LAYER === */
+#bsod-layer {
+  display: none;
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: #0000AA; color: #fff;
+  font-family: 'Courier New', Courier, monospace;
+  padding: 40px; font-size: 1.2rem; z-index: 999999;
+  cursor: none;
+}
+.blink-underscore { animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0; } }
 </style>
 </head>
 
@@ -633,6 +645,16 @@ body.live-active .btn:hover {
     <div id="void-trigger">ENTER THE VOID</div>
 
   </div>
+</div>
+
+<div id="bsod-layer">
+  <p>A fatal exception 0E has occurred at 0028:C0034B23 in VXD VMM(01) + 00004323.</p>
+  <p>The current application will be terminated.</p>
+  <br>
+  <p>* Press any key to terminate the current application.</p>
+  <p>* Press CTRL+ALT+DEL again to restart your computer. You will lose any unsaved information in all applications.</p>
+  <br>
+  <p>Press any key to continue <span class="blink-underscore">_</span></p>
 </div>
 
 <script>
@@ -795,6 +817,11 @@ function playHeartbeat() {
   gain2.gain.linearRampToValueAtTime(0.6, t + 0.3);
   gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
   osc2.stop(t + 0.6);
+
+  // ADD HAPTICS
+  if (navigator.vibrate) {
+    navigator.vibrate([50]); // Short vibe on the beat
+  }
 }
 
 function toggleFleshMode() {
@@ -865,6 +892,59 @@ document.getElementById('void-trigger').addEventListener('click', () => {
     alert("ACCESS DENIED");
   }
 });
+
+// --- NEW EASTER EGG 4: KONAMI BSOD ---
+const konamiCode = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+let kPosition = 0;
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === konamiCode[kPosition]) {
+    kPosition++;
+    if (kPosition === konamiCode.length) {
+      triggerBSOD();
+      kPosition = 0;
+    }
+  } else {
+    kPosition = 0;
+  }
+});
+
+function triggerBSOD() {
+  const bsod = document.getElementById('bsod-layer');
+  bsod.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+// --- NEW EASTER EGG 5: SUBLIMINAL GLITCH ---
+const creepyWords = ["OBEY", "CONSUME", "SLEEP", "NO EXIT", "WATCHING", "VOID"];
+const targetElements = document.querySelectorAll('.info, .dress, .footer');
+
+setInterval(() => {
+  if(Math.random() > 0.9) { // Rare trigger
+    const target = targetElements[Math.floor(Math.random() * targetElements.length)];
+    const originalText = target.innerText;
+    
+    target.style.color = "red";
+    target.style.fontFamily = "Courier New";
+    target.innerText = creepyWords[Math.floor(Math.random() * creepyWords.length)];
+    
+    setTimeout(() => {
+      target.innerText = originalText;
+      target.style.color = "";
+      target.style.fontFamily = "";
+    }, 100);
+  }
+}, 2000);
+
+// --- NEW EASTER EGG 6: CONSOLE GHOST ---
+console.log(
+  "%c STOP LOOKING. \n YOU ARE NOT SUPPOSED TO BE HERE. ",
+  "background: #000; color: #ff0000; font-size: 20px; padding: 20px; border: 2px solid red;"
+);
+console.log(
+  "%c(If you are looking for the venue coordinates, they are buried in the source code...)", 
+  "color: #555;"
+);
 </script>
 </body>
 </html>
