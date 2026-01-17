@@ -17,11 +17,6 @@
   --acid:#00aaff;
   --alert:#ff0000;
   
-  /* DYNAMIC VARIABLES */
-  --rgb-shift: 2px;
-  --scan-opacity: 0.25;
-  --flicker-strength: 0.95;
-  
   --font-head: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "Courier New", monospace;
@@ -29,28 +24,34 @@
 
 *{margin:0;padding:0;box-sizing:border-box}
 
-html, body {
+/* FIX: Ensure HTML has black background to prevent bottom gap */
+html {
+  height: 100%;
+  background: #000; 
+}
+
+body {
   height: 100%; 
   min-height: 100dvh; 
   overscroll-behavior: none; 
   background: #000; 
   -webkit-tap-highlight-color: transparent; 
-}
-
-body{
-  font-family:var(--font-body);
+  
+  font-family: var(--font-body);
   overflow-y: auto; 
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
-  transition: background-color 1s ease;
+  transition: background-color 0.2s ease;
 }
 
 /* === GLOBAL VHS OVERLAYS === */
 
 .scanlines {
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100dvh;
+  inset: 0; /* Use inset:0 to ensure full viewport coverage */
+  width: 100%; height: 100dvh;
+  /* Default: Dark Lines (Normal Mode) */
   background: repeating-linear-gradient(
     0deg,
     rgba(0, 0, 0, 0.4),
@@ -61,6 +62,7 @@ body{
   pointer-events: none;
   z-index: 2147483647; 
   backdrop-filter: sepia(20%) contrast(1.2) brightness(0.9);
+  transition: background 0.5s ease;
 }
 
 .tracking-line {
@@ -185,7 +187,7 @@ body{
 /* === STATIC BLAST & OVERLAY === */
 #static-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
+  inset: 0; width: 100%; height: 100%;
   background: repeating-conic-gradient(#000 0% 25%, #fff 0% 50%);
   background-size: 4px 4px;
   opacity: 0; /* Hidden by default */
@@ -210,7 +212,7 @@ body{
 /* === VHS STROBE OVERLAY === */
 .vhs-strobe-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
+  inset: 0; width: 100%; height: 100%;
   pointer-events: none;
   z-index: 20001; /* Above static */
   display: none;
@@ -388,7 +390,7 @@ body.flesh-mode #vein-overlay {
 
 body.flesh-mode .page-wrapper {
   background: transparent;
-  color: #ff0000; /* Red Text */
+  color: #ff0000; 
 }
 
 body.flesh-mode .title {
@@ -443,13 +445,30 @@ body.flesh-mode .btn {
 /* ========================================= */
 
 body.live-active {
-  background: #200000 !important; 
+  background: #000000 !important; /* FIXED: BLACK BG */
   animation: panic-pulse 0.5s infinite alternate;
+  
+  /* Standard clarity (no blur) so it looks clean like Flesh Mode */
+  filter: contrast(1.1) brightness(1.1);
+}
+
+/* == CHAOS MODE SCANLINES (Fixed to match normal mode) == */
+/* Pattern matches normal mode exactly, but faintly red */
+body.live-active .scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 0, 0, 0.1), /* Very subtle red tint (10% opacity) */
+    rgba(255, 0, 0, 0.1) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  /* No backdrop filter to keep it clean */
+  backdrop-filter: none;
 }
 
 /* 1. NOTABLE VHS OVERLAYS */
 body.live-active #static-overlay {
-  opacity: 0.35 !important; /* MUCH HIGHER OPACITY */
+  opacity: 0.35 !important; 
   animation: noise-move 0.2s infinite;
   display: block;
 }
@@ -483,11 +502,10 @@ body.live-active .page-wrapper {
   color: #fff;
 }
 
-/* 2. ACTUAL GLITCHING TITLE (TEARING) */
+/* 2. CHAOS TITLE (RED LIKE FLESH MODE) */
 body.live-active .title {
-  color: #ff0000;
-  text-shadow: 4px 4px 0 #000;
-  /* Re-using the tear-signal animation for violent glitching */
+  color: #ff0000 !important;
+  text-shadow: 0 0 15px #ff0000; /* Glowing red */
   animation: tear-signal 2s infinite steps(2); 
 }
 body.live-active .title span { color: #ff0000; }
@@ -538,8 +556,8 @@ body.live-active .btn:hover {
 }
 
 @keyframes panic-pulse {
-  0% { background-color: #200000; filter: contrast(1.2); }
-  100% { background-color: #400000; filter: contrast(2); }
+  0% { background-color: #1a0000; filter: contrast(1.2); }
+  100% { background-color: #300000; filter: contrast(2); }
 }
 
 @keyframes simple-blink {
